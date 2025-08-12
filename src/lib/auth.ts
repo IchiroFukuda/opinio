@@ -1,9 +1,10 @@
-import { NextAuthOptions } from 'next-auth'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { env } from './env'
 import { createClient } from '@supabase/supabase-js'
+import NextAuth from 'next-auth/next'
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'Email',
@@ -21,50 +22,47 @@ export const authOptions: NextAuthOptions = {
           // Supabaseクライアントを作成
           const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
           
-          // 既存ユーザーを確認
-          const { data: existingUser, error: selectError } = await supabase
+          // ユーザーが存在するかチェック
+          const { data: userData, error } = await supabase
             .from('users')
             .select('*')
             .eq('email', email)
             .single()
 
-          if (selectError && selectError.code !== 'PGRST116') {
-            console.error('User select error:', selectError)
+          if (error && error.code !== 'PGRST116') {
+            console.error('Supabase user fetch error:', error)
             return null
           }
 
-          if (existingUser) {
-            // 既存ユーザーの場合
-            return {
-              id: existingUser.id,
-              email: existingUser.email,
-              name: existingUser.name || email.split('@')[0],
-            }
-          } else {
-            // 新規ユーザーの場合、usersテーブルに作成
-            const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-            
-            const { data: newUser, error: insertError } = await supabase
+          // ユーザーが存在しない場合は作成
+          let user = userData
+          if (!user) {
+            const { data: newUser, error: createError } = await supabase
               .from('users')
-              .insert({
-                id: userId,
-                email: email,
-                name: email.split('@')[0],
-                email_verified: new Date().toISOString()
-              })
+              .insert([
+                {
+                  id: email,
+                  email: email,
+                  name: email.split('@')[0],
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                }
+              ])
               .select()
               .single()
 
-            if (insertError) {
-              console.error('User insert error:', insertError)
+            if (createError) {
+              console.error('User creation error:', createError)
               return null
             }
 
-            return {
-              id: newUser.id,
-              email: newUser.email,
-              name: newUser.name,
-            }
+            user = newUser
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
           }
         } catch (error) {
           console.error('Auth error:', error)
@@ -73,22 +71,20 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30日
-  },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: any; user: any }) {
       if (user) {
         token.id = user.id
         token.email = user.email
+        token.name = user.name
       }
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       if (token) {
         session.user.id = token.id as string
         session.user.email = token.email as string
+        session.user.name = token.name as string
       }
       return session
     }
@@ -97,4 +93,9 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
   },
   secret: env.NEXTAUTH_SECRET,
-} 
+  debug: process.env.NODE_ENV === 'development',
+}
+
+const nextAuth = NextAuth(authOptions)
+export const { auth } = nextAuth
+export const { GET, POST } = nextAuth 

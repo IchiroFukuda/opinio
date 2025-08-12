@@ -17,16 +17,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setLoading(status === 'loading')
-  }, [status])
+    console.log('AuthContext: status changed:', status)
+    console.log('AuthContext: session:', session)
+    
+    // statusの値を安定化して処理
+    const isLoading = status === 'loading'
+    setLoading(isLoading)
+    
+    console.log('AuthContext: loading state set to:', isLoading)
+  }, [status, session])
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/login' })
   }
 
+  // デバッグ用のログ（開発時のみ）
+  if (process.env.NODE_ENV === 'development') {
+    console.log('AuthContext: render - loading:', loading, 'status:', status, 'user:', session?.user)
+  }
+
   return (
     <AuthContext.Provider value={{ 
-      user: session?.user || null, 
+      user: session?.user ? {
+        id: (session.user as { id?: string }).id || '',
+        email: session.user.email || '',
+        name: session.user.name || ''
+      } : null, 
       loading, 
       signOut: handleSignOut 
     }}>

@@ -5,7 +5,10 @@ import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-export default function LoginPage() {
+type AuthMode = 'login' | 'register'
+
+export default function AuthPage() {
+  const [mode, setMode] = useState<AuthMode>('login')
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -53,18 +56,32 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setError('ログインに失敗しました。もう一度お試しください。')
+        if (mode === 'register') {
+          setError('新規登録に失敗しました。もう一度お試しください。')
+        } else {
+          setError('ログインに失敗しました。もう一度お試しください。')
+        }
       } else {
         setIsSuccess(true)
         setError('')
         // 成功時は自動的にリダイレクトされる
       }
     } catch (error) {
-      console.error('Login error:', error)
-      setError('ログインに失敗しました。もう一度お試しください。')
+      console.error('Auth error:', error)
+      if (mode === 'register') {
+        setError('新規登録に失敗しました。もう一度お試しください。')
+      } else {
+        setError('ログインに失敗しました。もう一度お試しください。')
+      }
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const switchMode = (newMode: AuthMode) => {
+    setMode(newMode)
+    setError('')
+    setIsSuccess(false)
   }
 
   return (
@@ -76,8 +93,34 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-8">
+          {/* タブ切り替え */}
+          <div className="flex mb-6 border-b border-gray-200">
+            <button
+              type="button"
+              onClick={() => switchMode('login')}
+              className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                mode === 'login'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              ログイン
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode('register')}
+              className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                mode === 'register'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              新規登録
+            </button>
+          </div>
+
           <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-            ログイン
+            {mode === 'login' ? 'ログイン' : '新規登録'}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,7 +145,10 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
             >
-              {isLoading ? 'ログイン中...' : 'ログイン'}
+              {isLoading 
+                ? (mode === 'login' ? 'ログイン中...' : '新規登録中...') 
+                : (mode === 'login' ? 'ログイン' : '新規登録')
+              }
             </button>
           </form>
 
@@ -114,13 +160,22 @@ export default function LoginPage() {
 
           {isSuccess && (
             <div className="mt-4 p-3 rounded-md bg-green-50 border border-green-200 text-green-800">
-              ログインに成功しました。リダイレクト中...
+              {mode === 'login' ? 'ログイン' : '新規登録'}に成功しました。リダイレクト中...
             </div>
           )}
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              メールアドレスを入力してログインしてください
+              {mode === 'login' 
+                ? 'メールアドレスを入力してログインしてください'
+                : 'メールアドレスを入力して新規登録してください'
+              }
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              {mode === 'login' 
+                ? 'アカウントをお持ちでない場合は、新規登録タブをクリックしてください'
+                : '既にアカウントをお持ちの場合は、ログインタブをクリックしてください'
+              }
             </p>
           </div>
         </div>

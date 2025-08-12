@@ -9,17 +9,28 @@ import Header from '@/components/Header'
 export default function TodayPage() {
   const { user, loading } = useAuth()
   const [dailyData, setDailyData] = useState<DailySetWithQuestions | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false) // 初期値をfalseに変更
   const [error, setError] = useState<string | null>(null)
 
+  console.log('TodayPage: rendering with user:', user, 'loading:', loading)
+
   useEffect(() => {
-    if (user && !loading) {
+    console.log('TodayPage: useEffect triggered, user:', user, 'loading:', loading)
+    
+    // 認証が完了し、ユーザーが存在する場合のみデータを取得
+    if (!loading && user) {
+      console.log('TodayPage: fetching questions...')
       fetchTodayQuestions()
+    } else if (!loading && !user) {
+      // 未認証の場合、データ取得を停止
+      console.log('TodayPage: user not authenticated, stopping data fetch')
+      setIsLoading(false)
     }
   }, [user, loading])
 
   const fetchTodayQuestions = async () => {
     try {
+      console.log('TodayPage: fetchTodayQuestions started')
       setIsLoading(true)
       setError(null)
 
@@ -30,6 +41,7 @@ export default function TodayPage() {
       }
 
       const data = await response.json()
+      console.log('TodayPage: questions fetched:', data)
       setDailyData(data)
     } catch (err) {
       console.error('Fetch error:', err)
@@ -85,35 +97,62 @@ export default function TodayPage() {
     }
   }
 
-  if (loading || isLoading) {
+  console.log('TodayPage: render state - loading:', loading, 'isLoading:', isLoading, 'user:', user, 'dailyData:', dailyData)
+
+  // 認証中の場合
+  if (loading) {
+    console.log('TodayPage: showing auth loading state')
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">読み込み中...</p>
+            <p className="mt-4 text-gray-600">認証中...</p>
           </div>
         </div>
       </div>
     )
   }
 
+  // 未認証の場合
   if (!user) {
+    console.log('TodayPage: showing login required state')
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Opinio</h1>
-          <p className="text-gray-600 mb-4">ログインが必要です</p>
-          <a href="/login" className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700">
-            ログイン
-          </a>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Opinio</h1>
+          <p className="text-gray-600 mb-4">ログインまたは新規登録が必要です</p>
+          <div className="space-x-4">
+            <a href="/login" className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700">
+              ログイン
+            </a>
+            <a href="/login" className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700">
+              新規登録
+            </a>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // データ取得中の場合
+  if (isLoading) {
+    console.log('TodayPage: showing data loading state')
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">データを取得中...</p>
+          </div>
         </div>
       </div>
     )
   }
 
   if (error) {
+    console.log('TodayPage: showing error state:', error)
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -133,6 +172,7 @@ export default function TodayPage() {
   }
 
   if (!dailyData) {
+    console.log('TodayPage: showing no data state')
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -147,6 +187,8 @@ export default function TodayPage() {
 
   const answeredCount = dailyData.questions.filter(q => q.answer).length
   const isDailyComplete = answeredCount >= 3
+
+  console.log('TodayPage: rendering main content with', dailyData.questions.length, 'questions')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -170,7 +212,7 @@ export default function TodayPage() {
         </div>
 
         <div className="space-y-6">
-          {dailyData.questions.map((dailyQuestion, index) => (
+          {dailyData.questions.map((dailyQuestion) => (
             <QuestionCard
               key={dailyQuestion.question.id}
               dailyQuestion={dailyQuestion}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { DailyQuestion, AnswerRequest } from '@/types'
 
 interface QuestionCardProps {
@@ -16,23 +16,7 @@ export default function QuestionCard({ dailyQuestion, onAnswerSubmit, disabled }
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isCompleted, setIsCompleted] = useState(!!dailyQuestion.answer)
 
-  useEffect(() => {
-    if (isStarted && timeLeft > 0 && !isCompleted) {
-      const timer = setTimeout(() => {
-        setTimeLeft(timeLeft - 1)
-      }, 1000)
-      return () => clearTimeout(timer)
-    } else if (timeLeft === 0 && !isCompleted) {
-      // 時間切れで自動送信
-      handleSubmit()
-    }
-  }, [isStarted, timeLeft, isCompleted])
-
-  const handleStart = () => {
-    setIsStarted(true)
-  }
-
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (isSubmitting || isCompleted) return
 
     setIsSubmitting(true)
@@ -48,6 +32,22 @@ export default function QuestionCard({ dailyQuestion, onAnswerSubmit, disabled }
     } finally {
       setIsSubmitting(false)
     }
+  }, [isSubmitting, isCompleted, onAnswerSubmit, dailyQuestion.question.id, content, timeLeft])
+
+  useEffect(() => {
+    if (isStarted && timeLeft > 0 && !isCompleted) {
+      const timer = setTimeout(() => {
+        setTimeLeft(timeLeft - 1)
+      }, 1000)
+      return () => clearTimeout(timer)
+    } else if (timeLeft === 0 && !isCompleted) {
+      // 時間切れで自動送信
+      handleSubmit()
+    }
+  }, [isStarted, timeLeft, isCompleted, handleSubmit])
+
+  const handleStart = () => {
+    setIsStarted(true)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

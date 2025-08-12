@@ -1,19 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { env } from '@/lib/env'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // NextAuth.jsセッションの取得
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    // サービスロールキーを使用してSupabaseクライアントを作成
+    // これによりRLSポリシーを回避できる
+    const supabase = createClient(
+      env.NEXT_PUBLIC_SUPABASE_URL, 
+      env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
 
     // ユーザーIDを取得
     const { data: user, error: userError } = await supabase
@@ -30,7 +34,9 @@ export async function GET(request: NextRequest) {
     const userId = user.id
 
     // RPCで本日の出題セットを取得または作成
-    const { data: dailySet, error: rpcError } = await supabase.rpc('get_or_create_daily_set')
+    const { data: dailySet, error: rpcError } = await supabase.rpc('get_or_create_daily_set', {
+      p_user_id: userId
+    })
     
     if (rpcError) {
       console.error('RPC Error:', rpcError)

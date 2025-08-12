@@ -1,13 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { env } from '@/lib/env'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // NextAuth.jsセッションの取得
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -60,7 +59,13 @@ export async function GET(request: NextRequest) {
 
       acc[date].push({
         id: answer.id,
-        question: answer.questions,
+        question: {
+          id: answer.question_id,
+          text: answer.content,
+          category: answer.questions.category,
+          is_active: answer.questions.is_active,
+          created_at: answer.questions.created_at
+        },
         answer: {
           id: answer.id,
           user_id: answer.user_id,
@@ -81,7 +86,33 @@ export async function GET(request: NextRequest) {
       })
 
       return acc
-    }, {} as Record<string, any[]>)
+    }, {} as Record<string, {
+      id: string;
+      question: {
+        id: string;
+        text: string;
+        category: string;
+        is_active: boolean;
+        created_at: string;
+      };
+      answer: {
+        id: string;
+        user_id: string;
+        question_id: string;
+        content: string;
+        elapsed_sec: number;
+        created_at: string;
+      };
+      feedback: {
+        id: string;
+        answer_id: string;
+        score_clarity: number;
+        score_reasoning: number;
+        score_diversity: number;
+        summary: string;
+        created_at: string;
+      } | null;
+    }[]>)
 
     // 日付の配列を作成（降順）
     const dates = Object.keys(historyByDate).sort((a, b) => {

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { auth } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { env } from '@/lib/env'
 import { answerRequestSchema } from '@/lib/validations'
@@ -8,13 +7,16 @@ import { answerRequestSchema } from '@/lib/validations'
 export async function POST(request: NextRequest) {
   try {
     // NextAuth.jsセッションの取得
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    const supabase = createClient(
+      env.NEXT_PUBLIC_SUPABASE_URL, 
+      env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
 
     // リクエストボディのバリデーション
     const body = await request.json()
@@ -35,7 +37,9 @@ export async function POST(request: NextRequest) {
     const userId = user.id
 
     // 本日の回答制限チェック
-    const { data: canAnswer, error: limitError } = await supabase.rpc('can_answer_today')
+    const { data: canAnswer, error: limitError } = await supabase.rpc('can_answer_today', {
+      p_user_id: userId
+    })
     
     if (limitError) {
       console.error('Limit Check Error:', limitError)

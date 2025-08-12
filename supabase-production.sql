@@ -1,3 +1,6 @@
+-- Supabase本番環境用スキーマ
+-- このファイルを本番環境のSupabaseダッシュボードのSQLエディタで実行してください
+
 -- テーブル作成
 -- users（NextAuth.js用）
 create table public.users (
@@ -58,15 +61,8 @@ create table public.feedback (
   unique(answer_id)
 );
 
--- RLSポリシー（一時的に無効化）
--- alter table public.users enable row level security;
--- alter table public.profiles  enable row level security;
--- alter table public.questions enable row level security;
--- alter table public.daily_sets enable row level security;
--- alter table public.answers   enable row level security;
--- alter table public.feedback  enable row level security;
-
--- RLSを無効化
+-- RLSポリシー（本番環境では適切なセキュリティ設定を行う）
+-- 開発段階では無効化してAPIからアクセス可能にする
 alter table public.users disable row level security;
 alter table public.profiles disable row level security;
 alter table public.questions disable row level security;
@@ -74,41 +70,15 @@ alter table public.daily_sets disable row level security;
 alter table public.answers disable row level security;
 alter table public.feedback disable row level security;
 
--- users（一時的に無効化してAPIからアクセス可能にする）
-drop policy if exists p_users_select on public.users;
-drop policy if exists p_users_insert on public.users;
-drop policy if exists p_users_update on public.users;
-
--- profiles（一時的に無効化）
-drop policy if exists p_profiles_select on public.profiles;
-drop policy if exists p_profiles_upsert on public.profiles;
-drop policy if exists p_profiles_update on public.profiles;
-
--- questions（公開読み取り）
-create policy p_questions_select on public.questions
-  for select using (true);
-
--- daily_sets（一時的に無効化）
-drop policy if exists p_daily_select on public.daily_sets;
-drop policy if exists p_daily_insert on public.daily_sets;
-
--- answers（一時的に無効化）
-drop policy if exists p_answers_select on public.answers;
-drop policy if exists p_answers_insert on public.answers;
-
--- feedback（一時的に無効化）
-drop policy if exists p_feedback_select on public.feedback;
-drop policy if exists p_feedback_insert_block on public.feedback;
-
--- RPC
--- JST日付での固定出題（3問）
-create or replace function public.get_or_create_daily_set(user_id text, d date default (current_timestamp at time zone 'Asia/Tokyo')::date, c int default 3)
+-- RPC関数
+-- 日次出題セットの取得または作成
+create or replace function public.get_or_create_daily_set(p_user_id text, d date default (current_timestamp at time zone 'Asia/Tokyo')::date, c int default 3)
 returns public.daily_sets
 language plpgsql security definer as $$
 declare ds public.daily_sets;
 begin
   -- ユーザーIDを設定
-  ds.user_id := user_id;
+  ds.user_id := p_user_id;
   
   if ds.user_id is null then
     raise exception 'User ID is required';
@@ -121,7 +91,7 @@ begin
 
   -- プロフィールが存在しない場合は作成
   insert into public.profiles (id, display_name)
-  values (ds.user_id, split_part((select email from public.users where id = ds.user_id), '@', 1))
+  values (p_user_id, split_part((select email from public.users where id = p_user_id), '@', 1))
   on conflict (id) do nothing;
 
   -- ランダムで3問を選択
@@ -134,18 +104,18 @@ begin
 
   -- 日次セットを作成
   insert into public.daily_sets(user_id, date, question_ids)
-  values (ds.user_id, d, ds.question_ids)
+  values (p_user_id, d, ds.question_ids)
   returning * into ds;
 
   return ds;
 end $$;
 
--- JSTで当日の回答数が3未満か
-create or replace function public.can_answer_today(user_id text)
+-- 当日の回答制限チェック
+create or replace function public.can_answer_today(p_user_id text)
 returns boolean language sql stable as $$
   select (
     select count(*) from public.answers a
-    where a.user_id = user_id
+    where a.user_id = p_user_id
       and (a.created_at at time zone 'Asia/Tokyo')::date =
           (current_timestamp at time zone 'Asia/Tokyo')::date
   ) < 3;
@@ -162,4 +132,10 @@ insert into public.questions (category, text) values
 ('daily','紙の本と電子書籍、どちらが良いですか？'),
 ('society','外国人労働者の受け入れ拡大に賛成ですか？'),
 ('business','会議時間を半分にするには？（結論→理由）'),
-('daily','休日は予定詰める派か休養派か？'); 
+('daily','休日は予定詰める派か休養派か？');
+
+-- インデックス作成（パフォーマンス向上）
+create index idx_users_email on public.users(email);
+create index idx_daily_sets_user_date on public.daily_sets(user_id, date);
+create index idx_answers_user_created on public.answers(user_id, created_at);
+create index idx_questions_active on public.questions(is_active) where is_active = true; 

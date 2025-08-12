@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Header from '@/components/Header'
+import Link from 'next/link'
 
 interface HistoryItem {
   date: string
@@ -121,9 +122,9 @@ export default function HistoryPage() {
         {history.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-600">まだ回答がありません</p>
-            <a href="/" className="text-blue-600 hover:text-blue-700 mt-2 inline-block">
+            <Link href="/" className="text-blue-600 hover:text-blue-700 mt-2 inline-block">
               今日の出題に戻る
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="space-y-8">
