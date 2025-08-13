@@ -41,6 +41,8 @@ export async function GET(request: Request) {
     // RPCで本日の出題セットを取得または作成
     const { data: dailySet, error: rpcError } = await supabase.rpc('get_or_create_daily_set', {
       p_user_id: userId,
+      d: new Date().toISOString().split('T')[0], // 今日の日付
+      c: 10, // 質問数
       p_language: language
     })
     
