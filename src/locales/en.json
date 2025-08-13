@@ -1,0 +1,55 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "history": "History"
+  },
+  "auth": {
+    "loading": "Authenticating...",
+    "loginRequired": "Login or registration required",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "Today's Questions",
+    "dailyComplete": "Today is complete. See you tomorrow.",
+    "dailyProgress": "Today's remaining: {{count}}/3",
+    "noData": "No data found",
+    "dataLoading": "Loading data...",
+    "fetchError": "Failed to fetch today's questions",
+    "dailyLimitReached": "Daily answer limit reached",
+    "submitError": "Submission error: {{status}}"
+  },
+  "question": {
+    "answer": "Answer",
+    "feedback": "Feedback",
+    "submitAnswer": "Submit Answer",
+    "answerSubmitted": "Answer submitted",
+    "yourAnswer": "Your Answer",
+    "emptyAnswer": "(Empty answer)",
+    "aiEvaluation": "AI Evaluation",
+    "clarityScore": "Clarity Score",
+    "reasoningScore": "Reasoning Score",
+    "diversityScore": "Diversity Score",
+    "answerTime": "Answer Time",
+    "seconds": "seconds",
+    "start": "Start",
+    "answerPlaceholder": "Enter your answer here...",
+    "submitting": "Submitting...",
+    "submit": "Submit",
+    "submitShortcut": "You can submit with Ctrl+Enter or Cmd+Enter"
+  },
+  "language": {
+    "ja": "日本語",
+    "en": "English",
+    "switchLanguage": "Switch Language"
+  }
+} 
