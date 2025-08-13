@@ -134,7 +134,7 @@ export default function QuestionCard({ dailyQuestion, onAnswerSubmit, disabled }
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="ここに回答を入力してください..."
-            className="w-full h-32 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full h-32 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
             disabled={isCompleted}
           />
 
