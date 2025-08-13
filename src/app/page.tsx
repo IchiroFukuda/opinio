@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { DailySetWithQuestions, AnswerRequest } from '@/types'
@@ -17,6 +17,7 @@ export default function TodayPage() {
 
   console.log('TodayPage: rendering with user:', user, 'loading:', loading)
 
+<<<<<<< Updated upstream
   useEffect(() => {
     console.log('TodayPage: useEffect triggered, user:', user, 'loading:', loading)
     
@@ -32,6 +33,9 @@ export default function TodayPage() {
   }, [user, loading, language]) // languageを依存配列に追加
 
   const fetchTodayQuestions = async () => {
+=======
+  const fetchTodayQuestions = useCallback(async () => {
+>>>>>>> Stashed changes
     try {
       console.log('TodayPage: fetchTodayQuestions started')
       setIsLoading(true)
@@ -53,7 +57,21 @@ export default function TodayPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [language, t])
+
+  useEffect(() => {
+    console.log('TodayPage: useEffect triggered, user:', user, 'loading:', loading)
+    
+    // 認証が完了し、ユーザーが存在する場合のみデータを取得
+    if (!loading && user) {
+      console.log('TodayPage: fetching questions...')
+      fetchTodayQuestions()
+    } else if (!loading && !user) {
+      // 未認証の場合、データ取得を停止
+      console.log('TodayPage: user not authenticated, stopping data fetch')
+      setIsLoading(false)
+    }
+  }, [user, loading, fetchTodayQuestions])
 
   const handleAnswerSubmit = async (answerData: AnswerRequest) => {
     try {

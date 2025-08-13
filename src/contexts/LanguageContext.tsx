@@ -14,7 +14,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('ja')
-  const [translations, setTranslations] = useState<Record<string, any>>({})
+  const [translations, setTranslations] = useState<Record<string, unknown>>({})
 
   useEffect(() => {
     // ローカルストレージから言語設定を読み込み
@@ -49,11 +49,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const t = (key: string, params?: Record<string, string | number>): string => {
     const keys = key.split('.')
-    let value: any = translations
+    let value: unknown = translations
 
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
-        value = value[k]
+        value = (value as Record<string, unknown>)[k]
       } else {
         return key // 翻訳が見つからない場合はキーをそのまま返す
       }
