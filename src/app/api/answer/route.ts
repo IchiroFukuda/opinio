@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { env } from '@/lib/env'
 import { answerRequestSchema } from '@/lib/validations'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    // NextAuth.jsセッションの取得
-    const session = await auth()
+    // NextAuth.jsセッションの取得（App Router用）
+    const session = await getServerSession(authOptions)
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

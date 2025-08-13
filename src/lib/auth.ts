@@ -89,13 +89,10 @@ export const authOptions = {
       return session
     }
   },
-  pages: {
-    signIn: '/login',
-  },
   secret: env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
 }
 
-const nextAuth = NextAuth(authOptions)
-export const { auth } = nextAuth
-export const { GET, POST } = nextAuth 
+const handler = NextAuth(authOptions)
+
+export { handler as GET, handler as POST } 
