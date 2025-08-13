@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { env } from '@/lib/env'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // NextAuth.jsセッションの取得（App Router用）
     const session = await getServerSession(authOptions)
@@ -12,6 +12,10 @@ export async function GET() {
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    // URLから言語パラメータを取得
+    const { searchParams } = new URL(request.url)
+    const language = searchParams.get('lang') || 'ja'
 
     // サービスロールキーを使用してSupabaseクライアントを作成
     // これによりRLSポリシーを回避できる
@@ -36,7 +40,8 @@ export async function GET() {
 
     // RPCで本日の出題セットを取得または作成
     const { data: dailySet, error: rpcError } = await supabase.rpc('get_or_create_daily_set', {
-      p_user_id: userId
+      p_user_id: userId,
+      p_language: language
     })
     
     if (rpcError) {
@@ -48,7 +53,7 @@ export async function GET() {
       return NextResponse.json({ error: 'No daily set found' }, { status: 404 })
     }
 
-    // 質問の詳細を取得
+    // 質問の詳細を取得（多言語対応）
     const { data: questions, error: questionsError } = await supabase
       .from('questions')
       .select('*')
@@ -76,11 +81,18 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to get answers' }, { status: 500 })
     }
 
-    // 質問と回答を組み合わせて返却
+    // 質問と回答を組み合わせて返却（言語に応じてテキストを選択）
     const dailyQuestions = questions.map(question => {
       const answer = answers.find(a => a.question_id === question.id)
+      
+      // 言語に応じてテキストを選択
+      const displayText = language === 'en' && question.text_en ? question.text_en : question.text
+      
       return {
-        question,
+        question: {
+          ...question,
+          text: displayText
+        },
         answer: answer ? {
           id: answer.id,
           user_id: answer.user_id,
@@ -103,7 +115,8 @@ export async function GET() {
 
     return NextResponse.json({
       daily_set: dailySet,
-      questions: dailyQuestions
+      questions: dailyQuestions,
+      language: language
     })
 
   } catch (error) {
