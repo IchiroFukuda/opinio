@@ -186,7 +186,7 @@ export default function TodayPage() {
   }
 
   const answeredCount = dailyData.questions.filter(q => q.answer).length
-  const isDailyComplete = answeredCount >= 3
+  const isDailyComplete = answeredCount >= 10
 
   console.log('TodayPage: rendering main content with', dailyData.questions.length, 'questions')
 
@@ -205,7 +205,7 @@ export default function TodayPage() {
           ) : (
             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
               <p className="text-blue-800">
-                今日の残り: {answeredCount}/3
+                今日の残り: {answeredCount}/10
               </p>
             </div>
           )}

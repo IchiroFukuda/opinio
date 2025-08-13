@@ -101,8 +101,8 @@ drop policy if exists p_feedback_select on public.feedback;
 drop policy if exists p_feedback_insert_block on public.feedback;
 
 -- RPC
--- JST日付での固定出題（3問）
-create or replace function public.get_or_create_daily_set(user_id text, d date default (current_timestamp at time zone 'Asia/Tokyo')::date, c int default 3)
+-- JST日付での固定出題（10問）
+create or replace function public.get_or_create_daily_set(user_id text, d date default (current_timestamp at time zone 'Asia/Tokyo')::date, c int default 10)
 returns public.daily_sets
 language plpgsql security definer as $$
 declare ds public.daily_sets;
@@ -124,7 +124,7 @@ begin
   values (ds.user_id, split_part((select email from public.users where id = ds.user_id), '@', 1))
   on conflict (id) do nothing;
 
-  -- ランダムで3問を選択
+  -- ランダムで10問を選択
   select array(
     select id from public.questions
     where is_active
@@ -140,7 +140,7 @@ begin
   return ds;
 end $$;
 
--- JSTで当日の回答数が3未満か
+-- JSTで当日の回答数が10未満か
 create or replace function public.can_answer_today(user_id text)
 returns boolean language sql stable as $$
   select (
@@ -148,7 +148,7 @@ returns boolean language sql stable as $$
     where a.user_id = user_id
       and (a.created_at at time zone 'Asia/Tokyo')::date =
           (current_timestamp at time zone 'Asia/Tokyo')::date
-  ) < 3;
+  ) < 10;
 $$;
 
 -- 初期Seed（30問）

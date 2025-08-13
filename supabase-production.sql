@@ -72,7 +72,7 @@ alter table public.feedback disable row level security;
 
 -- RPC関数
 -- 日次出題セットの取得または作成
-create or replace function public.get_or_create_daily_set(p_user_id text, d date default (current_timestamp at time zone 'Asia/Tokyo')::date, c int default 3)
+create or replace function public.get_or_create_daily_set(p_user_id text, d date default (current_timestamp at time zone 'Asia/Tokyo')::date, c int default 10)
 returns public.daily_sets
 language plpgsql security definer as $$
 declare ds public.daily_sets;
@@ -94,7 +94,7 @@ begin
   values (p_user_id, split_part((select email from public.users where id = p_user_id), '@', 1))
   on conflict (id) do nothing;
 
-  -- ランダムで3問を選択
+  -- ランダムで10問を選択
   select array(
     select id from public.questions
     where is_active
@@ -118,7 +118,7 @@ returns boolean language sql stable as $$
     where a.user_id = p_user_id
       and (a.created_at at time zone 'Asia/Tokyo')::date =
           (current_timestamp at time zone 'Asia/Tokyo')::date
-  ) < 3;
+  ) < 10;
 $$;
 
 -- 初期Seed（30問）
