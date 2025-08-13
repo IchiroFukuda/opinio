@@ -57,6 +57,14 @@ export default function TodayPage() {
     }
   }, [user, loading, fetchTodayQuestions, router])
 
+  // 言語変更時に質問を再取得
+  useEffect(() => {
+    if (user && !loading) {
+      console.log('TodayPage: language changed, refetching questions...')
+      fetchTodayQuestions()
+    }
+  }, [language, user, loading, fetchTodayQuestions])
+
   const handleAnswerSubmit = async (answerData: AnswerRequest) => {
     try {
       const response = await fetch('/api/answer', {
