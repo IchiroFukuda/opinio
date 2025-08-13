@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [status, session])
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/login' })
+    await signOut({ callbackUrl: '/auth' })
   }
 
   // デバッグ用のログ（開発時のみ）

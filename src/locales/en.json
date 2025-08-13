@@ -21,7 +21,7 @@
   "home": {
     "title": "Today's Questions",
     "dailyComplete": "Today is complete. See you tomorrow.",
-    "dailyProgress": "Today's remaining: {{count}}/3",
+    "dailyProgress": "Today's remaining: {{remaining}}/{{total}}",
     "noData": "No data found",
     "dataLoading": "Loading data...",
     "fetchError": "Failed to fetch today's questions",

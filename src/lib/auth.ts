@@ -3,66 +3,60 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { env } from './env'
 import { createClient } from '@supabase/supabase-js'
 import NextAuth from 'next-auth/next'
+import { verifyPassword } from './auth-utils'
 
 export const authOptions = {
   providers: [
     CredentialsProvider({
-      name: 'Email',
+      name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' }
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials?.email) {
+        if (!credentials?.email || !credentials?.password) {
           return null
         }
 
         const email = credentials.email.toLowerCase()
+        const password = credentials.password
         
         try {
           // Supabaseクライアントを作成
           const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
           
-          // ユーザーが存在するかチェック
+          // ユーザーが存在するかチェック（パスワードハッシュも含む）
           const { data: userData, error } = await supabase
             .from('users')
             .select('*')
             .eq('email', email)
             .single()
 
-          if (error && error.code !== 'PGRST116') {
+          if (error) {
             console.error('Supabase user fetch error:', error)
             return null
           }
 
-          // ユーザーが存在しない場合は作成
-          let user = userData
-          if (!user) {
-            const { data: newUser, error: createError } = await supabase
-              .from('users')
-              .insert([
-                {
-                  id: email,
-                  email: email,
-                  name: email.split('@')[0],
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                }
-              ])
-              .select()
-              .single()
+          // ユーザーが存在しない場合
+          if (!userData) {
+            return null
+          }
 
-            if (createError) {
-              console.error('User creation error:', createError)
-              return null
-            }
+          // パスワードが設定されていない場合（既存のユーザー）
+          if (!userData.password_hash) {
+            return null
+          }
 
-            user = newUser
+          // パスワードを検証
+          const isValidPassword = await verifyPassword(password, userData.password_hash)
+          if (!isValidPassword) {
+            return null
           }
 
           return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
           }
         } catch (error) {
           console.error('Auth error:', error)
