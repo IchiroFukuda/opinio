@@ -10,7 +10,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function TodayPage() {
   const { user, loading } = useAuth()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [dailyData, setDailyData] = useState<DailySetWithQuestions | null>(null)
   const [isLoading, setIsLoading] = useState(false) // 初期値をfalseに変更
   const [error, setError] = useState<string | null>(null)
@@ -29,7 +29,7 @@ export default function TodayPage() {
       console.log('TodayPage: user not authenticated, stopping data fetch')
       setIsLoading(false)
     }
-  }, [user, loading])
+  }, [user, loading, language]) // languageを依存配列に追加
 
   const fetchTodayQuestions = async () => {
     try {
@@ -37,7 +37,8 @@ export default function TodayPage() {
       setIsLoading(true)
       setError(null)
 
-      const response = await fetch('/api/today')
+      // 言語パラメータをAPIに送信
+      const response = await fetch(`/api/today?lang=${language}`)
 
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`)

@@ -8,6 +8,7 @@ export interface Question {
   id: number
   category: string
   text: string
+  text_en?: string
   is_active: boolean
   created_at: string
 }
