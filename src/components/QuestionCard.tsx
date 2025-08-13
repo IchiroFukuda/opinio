@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { DailyQuestion, AnswerRequest } from '@/types'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface QuestionCardProps {
   dailyQuestion: DailyQuestion
@@ -10,6 +11,7 @@ interface QuestionCardProps {
 }
 
 export default function QuestionCard({ dailyQuestion, onAnswerSubmit, disabled }: QuestionCardProps) {
+  const { t } = useLanguage()
   const [isStarted, setIsStarted] = useState(false)
   const [timeLeft, setTimeLeft] = useState(45)
   const [content, setContent] = useState('')
@@ -66,32 +68,32 @@ export default function QuestionCard({ dailyQuestion, onAnswerSubmit, disabled }
         </h3>
         
         <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2">あなたの回答:</p>
+          <p className="text-sm text-gray-600 mb-2">{t('question.yourAnswer')}:</p>
           <p className="text-gray-900 bg-gray-50 p-3 rounded">
-            {dailyQuestion.answer.content || '(空の回答)'}
+            {dailyQuestion.answer.content || t('question.emptyAnswer')}
           </p>
         </div>
 
         <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2">AI評価:</p>
+          <p className="text-sm text-gray-600 mb-2">{t('question.aiEvaluation')}:</p>
           <div className="grid grid-cols-3 gap-4 mb-3">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
                 {dailyQuestion.feedback.score_clarity}
               </div>
-              <div className="text-xs text-gray-500">結論の明確さ</div>
+              <div className="text-xs text-gray-500">{t('question.clarityScore')}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
                 {dailyQuestion.feedback.score_reasoning}
               </div>
-              <div className="text-xs text-gray-500">理由の妥当性</div>
+              <div className="text-xs text-gray-500">{t('question.reasoningScore')}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
                 {dailyQuestion.feedback.score_diversity}
               </div>
-              <div className="text-xs text-gray-500">視点の多様性</div>
+              <div className="text-xs text-gray-500">{t('question.diversityScore')}</div>
             </div>
           </div>
           <p className="text-sm text-gray-700 bg-blue-50 p-3 rounded">
@@ -100,7 +102,7 @@ export default function QuestionCard({ dailyQuestion, onAnswerSubmit, disabled }
         </div>
 
         <div className="text-xs text-gray-500">
-          回答時間: {dailyQuestion.answer.elapsed_sec}秒
+          {t('question.answerTime')}: {dailyQuestion.answer.elapsed_sec}{t('question.seconds')}
         </div>
       </div>
     )
@@ -118,7 +120,7 @@ export default function QuestionCard({ dailyQuestion, onAnswerSubmit, disabled }
           disabled={disabled}
           className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
         >
-          開始
+          {t('question.start')}
         </button>
       ) : (
         <div className="space-y-4">
@@ -126,15 +128,15 @@ export default function QuestionCard({ dailyQuestion, onAnswerSubmit, disabled }
             <div className="text-3xl font-bold text-red-600">
               {timeLeft}
             </div>
-            <div className="text-sm text-gray-500">秒</div>
+            <div className="text-sm text-gray-500">{t('question.seconds')}</div>
           </div>
 
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="ここに回答を入力してください..."
-            className="w-full h-32 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+            placeholder={t('question.answerPlaceholder')}
+            className="w-full h-32 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={isCompleted}
           />
 
@@ -143,11 +145,11 @@ export default function QuestionCard({ dailyQuestion, onAnswerSubmit, disabled }
             disabled={isSubmitting || isCompleted || disabled}
             className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
           >
-            {isSubmitting ? '送信中...' : '送信'}
+            {isSubmitting ? t('question.submitting') : t('question.submit')}
           </button>
 
           <p className="text-xs text-gray-500 text-center">
-            Ctrl+Enter または Cmd+Enter で送信できます
+            {t('question.submitShortcut')}
           </p>
         </div>
       )}

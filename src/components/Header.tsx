@@ -2,9 +2,12 @@
 
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { useLanguage } from '@/contexts/LanguageContext'
+import LanguageSwitcher from './LanguageSwitcher'
 
 export default function Header() {
   const { user, signOut } = useAuth()
+  const { t } = useLanguage()
 
   if (!user) {
     return null
@@ -25,13 +28,14 @@ export default function Header() {
               href="/history"
               className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
             >
-              履歴
+              {t('common.history')}
             </Link>
+            <LanguageSwitcher />
             <button
               onClick={signOut}
               className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
             >
-              ログアウト
+              {t('auth.logout')}
             </button>
           </nav>
         </div>

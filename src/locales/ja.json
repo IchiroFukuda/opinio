@@ -1,0 +1,55 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "retry": "再試行",
+    "submit": "送信",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "history": "履歴"
+  },
+  "auth": {
+    "loading": "認証中...",
+    "loginRequired": "ログインまたは新規登録が必要です",
+    "login": "ログイン",
+    "register": "新規登録",
+    "logout": "ログアウト"
+  },
+  "home": {
+    "title": "今日の出題",
+    "dailyComplete": "本日は終了。また明日。",
+    "dailyProgress": "今日の残り: {{count}}/3",
+    "noData": "データが見つかりません",
+    "dataLoading": "データを取得中...",
+    "fetchError": "今日の出題の取得に失敗しました",
+    "dailyLimitReached": "本日の回答上限に達しました",
+    "submitError": "送信エラー: {{status}}"
+  },
+  "question": {
+    "answer": "回答",
+    "feedback": "フィードバック",
+    "submitAnswer": "回答を送信",
+    "answerSubmitted": "回答が送信されました",
+    "yourAnswer": "あなたの回答",
+    "emptyAnswer": "(空の回答)",
+    "aiEvaluation": "AI評価",
+    "clarityScore": "結論の明確さ",
+    "reasoningScore": "理由の妥当性",
+    "diversityScore": "視点の多様性",
+    "answerTime": "回答時間",
+    "seconds": "秒",
+    "start": "開始",
+    "answerPlaceholder": "ここに回答を入力してください...",
+    "submitting": "送信中...",
+    "submit": "送信",
+    "submitShortcut": "Ctrl+Enter または Cmd+Enter で送信できます"
+  },
+  "language": {
+    "ja": "日本語",
+    "en": "English",
+    "switchLanguage": "言語を切り替え"
+  }
+} 
