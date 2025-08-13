@@ -7,10 +7,12 @@ import { DailySetWithQuestions, AnswerRequest } from '@/types'
 import QuestionCard from '@/components/QuestionCard'
 import Header from '@/components/Header'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { useRouter } from 'next/navigation'
 
 export default function TodayPage() {
   const { user, loading } = useAuth()
   const { t, language } = useLanguage()
+  const router = useRouter()
   const [dailyData, setDailyData] = useState<DailySetWithQuestions | null>(null)
   const [isLoading, setIsLoading] = useState(false) // 初期値をfalseに変更
   const [error, setError] = useState<string | null>(null)
@@ -49,11 +51,11 @@ export default function TodayPage() {
       console.log('TodayPage: fetching questions...')
       fetchTodayQuestions()
     } else if (!loading && !user) {
-      // 未認証の場合、データ取得を停止
-      console.log('TodayPage: user not authenticated, stopping data fetch')
-      setIsLoading(false)
+      // 未認証の場合、認証ページにリダイレクト
+      console.log('TodayPage: user not authenticated, redirecting to auth page')
+      router.push('/auth')
     }
-  }, [user, loading, fetchTodayQuestions])
+  }, [user, loading, fetchTodayQuestions, router])
 
   const handleAnswerSubmit = async (answerData: AnswerRequest) => {
     try {
@@ -233,8 +235,10 @@ export default function TodayPage() {
     )
   }
 
+  const totalQuestions = dailyData.questions.length
   const answeredCount = dailyData.questions.filter(q => q.answer).length
-  const isDailyComplete = answeredCount >= 10
+  const remainingQuestions = totalQuestions - answeredCount
+  const isDailyComplete = answeredCount >= totalQuestions
 
   console.log('TodayPage: rendering main content with', dailyData.questions.length, 'questions')
 
@@ -253,7 +257,7 @@ export default function TodayPage() {
           ) : (
             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
               <p className="text-blue-800">
-                {t('home.dailyProgress', { count: answeredCount })}
+                {t('home.dailyProgress', { remaining: remainingQuestions, total: totalQuestions })}
               </p>
             </div>
           )}

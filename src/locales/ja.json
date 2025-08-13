@@ -21,7 +21,7 @@
   "home": {
     "title": "今日の出題",
     "dailyComplete": "本日は終了。また明日。",
-    "dailyProgress": "今日の残り: {{count}}/3",
+    "dailyProgress": "今日の残り: {{remaining}}/{{total}}",
     "noData": "データが見つかりません",
     "dataLoading": "データを取得中...",
     "fetchError": "今日の出題の取得に失敗しました",
